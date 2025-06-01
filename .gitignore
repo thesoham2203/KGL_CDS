@@ -1,0 +1,29 @@
+# Ignore virtual environments
+venv/
+.env/
+ENV/
+env/
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs and local environment
+*.log
+*.sqlite3
+.DS_Store
+
+# VSCode and IDE configs
+.vscode/
+.idea/
+
+# Python virtual environment metadata
+*.egg-info/
+dist/
+build/
+
+
