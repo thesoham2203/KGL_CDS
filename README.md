@@ -81,6 +81,15 @@ python evaluate.py --val_images path/to/val_images --labels path/to/labels.xlsx 
 
 ---
 
+| Step | File          | Purpose                       |
+| ---- | ------------- | ----------------------------- |
+| 1    | model.py    | Defines CSRNet                |
+| 2    | dataset.py  | Prepares dataset & transforms |
+| 3    | train.py    | Trains and saves model        |
+| 4    | evaluate.py | Tests model on validation set |
+
+---
+
 ## Model Architecture
 
 CSRNet uses a pre-trained VGG-16 frontend followed by dilated convolutional layers to generate density maps that are integrated to estimate crowd counts.
