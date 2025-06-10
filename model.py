@@ -46,3 +46,12 @@ class CSRNet(nn.Module):
         x = self.backbone(x)
         x = self.regressor(x)
         return x
+
+class CountRegressor(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.base = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        self.base.fc = nn.Linear(self.base.fc.in_features, 1)
+
+    def forward(self, x):
+        return self.base(x)

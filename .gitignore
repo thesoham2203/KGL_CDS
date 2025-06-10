@@ -3,6 +3,7 @@ venv/
 .env/
 ENV/
 env/
+regressor/
 
 # Byte-compiled / cache
 __pycache__/
