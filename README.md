@@ -1,132 +1,170 @@
-# Crowd Counting using CSRNet
-
-## Project Overview
-
-This project implements a crowd counting system based on the **CSRNet** (Congested Scene Recognition Network) deep learning architecture. The goal is to estimate the number of people in an image accurately, given custom datasets of crowd images and their corresponding actual counts.
-
-CSRNet leverages convolutional neural networks and dilated convolutions to generate crowd density maps, enabling precise counting even in highly congested scenes.
+Here is a detailed `README.md` for your ResNet-based Crowd Counting project:
 
 ---
 
-## Dataset
+````markdown
+# 🧠 ResNet-Based Crowd Counting Model
 
-* **Training images:** 1500 images (`seq_000001.jpg` to `seq_001500.jpg`)
-* **Validation images:** 500 images (`seq_001501.jpg` to `seq_002000.jpg` or similar)
-* **Labels:** Provided in an Excel sheet containing:
-
-  * Image filenames
-  * Actual person count per image (numeric scalar, not density maps)
+This project implements a high-accuracy crowd counting pipeline using a fine-tuned `ResNet50` backbone for **regression-based person count estimation** from images. It was designed for the **Kaggle Olympiad Crowd Density Prediction Challenge**, but the architecture is flexible and works on any crowd image dataset with image-wise count annotations.
 
 ---
 
-## Features
+## 📌 Features
 
-* Custom dataset support with crowd count labels
-* CSRNet architecture for high-accuracy crowd counting
-* Training and validation pipelines
-* Metrics for evaluation of prediction accuracy and consistency
-* Multi-hour training support for improved accuracy
+- 🔍 **Regression-based crowd counting** using ResNet50
+- 🧪 **Test-time augmentation (TTA)** for more stable predictions
+- 🧠 **Transfer learning** with selective fine-tuning
+- 🔄 **Stochastic Weight Averaging (SWA)** to stabilize training
+- 📈 **Learning rate warmup & scheduling**
+- 🧹 **Data preprocessing and augmentation**
+- ✅ Compatible with **Google Colab**, **PyTorch**, and **Kaggle Datasets**
 
 ---
 
-## Installation
-
-1. Clone the repository:
+## 🧬 Project Structure
 
 ```bash
-git clone https://github.com/yourusername/crowd-counting-csrnet.git
-cd crowd-counting-csrnet
-```
+📁 crowd-counter-resnet/
+├── main.py      # 📌 Full training + inference code
+├── submission_highacc.csv      # ✅ Final output (submission format)
+├── training_data.csv           # 🏷 Image ID + person count
+├── test/                       # 🔎 Test images
+├── output_train/train/         # 🧠 Training/Validation images
+└── README.md                   # 📖 This file
+````
 
-2. Create and activate a Python virtual environment (recommended):
+---
+
+## 🔧 Setup Instructions
+
+### 1. Environment
+
+Install the required packages:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate   # On Windows: venv\Scripts\activate
+pip install torch torchvision transformers pandas tqdm
 ```
 
-3. Install dependencies:
+If running on Google Colab:
+
+```python
+from google.colab import drive
+drive.mount('/content/drive')
+```
+
+---
+
+### 2. Folder Structure Expected
+
+```
+📁 /content/drive/MyDrive/kaggle-olympiad-crowd-density-prediction/
+├── training_data.csv                  # Columns: id,count
+├── output_train/train/seq_000001.jpg # Images for training
+├── test/test/seq_01501.jpg           # Images for testing
+```
+
+---
+
+### 3. Run Training
+
+Edit the paths in `main.py` and execute:
 
 ```bash
-pip install -r requirements.txt
+python main.py
 ```
 
-4. Ensure CUDA drivers and PyTorch GPU support are properly installed if training on GPU.
+This will:
+
+* Train the model with **ResNet50 + dropout**
+* Apply **data augmentations** like flip, color jitter, rotation
+* Save the best model as `resnet50_regressor_best.pth`
 
 ---
 
-## Usage
+### 4. Run Inference
 
-### Prepare Data
+The same script performs inference at the end using:
 
-* Organize training and validation images in separate folders.
-* Ensure the Excel file with image counts is correctly formatted and accessible.
+* **Test-Time Augmentation (TTA)**: predicts on original and flipped images
+* Aggregates predictions and saves results in:
 
-### Training
+  ```bash
+  submission_highacc.csv
+  ```
 
-```bash
-python train.py --train_images path/to/train_images --val_images path/to/val_images --labels path/to/labels.xlsx --epochs 50 --batch_size 8 --lr 1e-5
+---
+
+## 📊 Model Architecture
+
+```text
+ResNet50 (pretrained on ImageNet)
+└── Remove FC layer
+└── AdaptiveAvgPool2d
+└── Flatten
+└── Linear(2048 → 256) + ReLU + Dropout(0.3)
+└── Linear(256 → 1)  → outputs person count (float)
 ```
 
-* Adjust parameters as needed.
-* Monitor training progress via printed logs or integrated visualization tools (TensorBoard etc.).
+* Only `layer4` and custom regressor are trained (rest frozen)
 
-### Evaluation
+---
 
-```bash
-python evaluate.py --val_images path/to/val_images --labels path/to/labels.xlsx --model path/to/trained_model.pth
+## 🧪 Evaluation Metric
+
+We use **Root Mean Squared Error (RMSE)**:
+
+$$
+\text{RMSE} = \sqrt{ \frac{1}{N} \sum_{i=1}^{N} (\hat{y}_i - y_i)^2 }
+$$
+
+During training, both `Train RMSE` and `Validation RMSE` are monitored.
+
+---
+
+## 📈 Training Tricks Used
+
+| Trick                 | Description                                           |
+| --------------------- | ----------------------------------------------------- |
+| 🔍 **TTA**            | Flip images at test time and average predictions      |
+| 🧠 **SWA**            | Averages weights from the last few epochs             |
+| 🔄 **LR Scheduler**   | Linear warmup followed by gradual decay               |
+| 🎨 **Augmentation**   | Resize, flip, color jitter, rotate                    |
+| ⛔ **Freezing layers** | ResNet frozen except for last block (layer4) and head |
+
+---
+
+## 📤 Sample Submission Format
+
+```csv
+id,count
+1501,38
+1502,45
+1503,51
+...
 ```
 
-* Outputs prediction metrics and accuracy scores.
+---
+
+## 🔑 Possible Improvements
+
+* Use **CSRNet** or **SANet** with density map supervision
+* Switch to **EfficientNet** for better feature extraction
+* Integrate **multi-scale patches** to boost detail recognition
+* Apply **self-supervised pretraining** for better generalization
 
 ---
 
-| Step | File          | Purpose                       |
-| ---- | ------------- | ----------------------------- |
-| 1    | model.py    | Defines CSRNet                |
-| 2    | dataset.py  | Prepares dataset & transforms |
-| 3    | train.py    | Trains and saves model        |
-| 4    | evaluate.py | Tests model on validation set |
+## 🧠 Author & Credits
+
+**👤 Soham Penshanwar**
+Final Year AI & Data Science | K.K. Wagh Institute of Engineering
+
+This project was inspired by real-world challenges in analyzing CCTV footfall, safety monitoring, and public infrastructure planning.
 
 ---
 
-## Model Architecture
+## 📜 License
 
-CSRNet uses a pre-trained VGG-16 frontend followed by dilated convolutional layers to generate density maps that are integrated to estimate crowd counts.
+This code has been released under the Apache 2.0 open source license.
 
-For more details, refer to the original CSRNet paper:
-[CSRNet Paper (CVPR 2018)](https://arxiv.org/abs/1802.10062)
-
----
-
-## Performance Metrics
-
-* Mean Absolute Error (MAE)
-* Mean Squared Error (MSE)
-* Visual comparison of predicted counts vs actual counts
-
----
-
-## Future Work
-
-* Generate and train on density maps for improved spatial accuracy.
-* Deploy as a FastAPI service for live crowd counting.
-* Integrate real-time video stream counting.
-* Experiment with data augmentation and model hyperparameters to boost accuracy.
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
----
-
-## Acknowledgements
-
-* CSRNet authors for their original work.
-* Public datasets and tools used for inspiration.
-* Your own institution/project team (optional).
-
----
-
+```
