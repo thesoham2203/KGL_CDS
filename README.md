@@ -1,9 +1,5 @@
-Here is a detailed `README.md` for your ResNet-based Crowd Counting project:
 
----
-
-````markdown
-# 🧠 ResNet-Based Crowd Counting Model
+🧠 ResNet-Based Crowd Counting Model
 
 This project implements a high-accuracy crowd counting pipeline using a fine-tuned `ResNet50` backbone for **regression-based person count estimation** from images. It was designed for the **Kaggle Olympiad Crowd Density Prediction Challenge**, but the architecture is flexible and works on any crowd image dataset with image-wise count annotations.
 
